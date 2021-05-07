@@ -42,6 +42,7 @@ end
     tol = Defaults.tol;
     maxiter = Defaults.maxiter;
     trscheme = truncerr(1e-6);
+    krylovdim = 30;
     verbose = Defaults.verbose
     finalize::F = Defaults._finalize
 end
@@ -54,7 +55,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
     while iter < maxiter && delta > tol
         delta=0.0
 
-        ealg = Arnoldi(krylovdim=60)
+        ealg = Arnoldi(krylovdim=alg.krylovdim)
 
         #left to right sweep
         for pos= 1:(length(state)-1)
