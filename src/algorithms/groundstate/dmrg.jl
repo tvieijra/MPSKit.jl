@@ -17,7 +17,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
         delta=0.0
 
         for pos = [1:(length(state)-1);length(state):-1:2]
-            (eigvals,vecs) = @closure eigsolve(state.AC[pos],1,:SR,Lanczos()) do x
+            (eigvals,vecs) = @closure eigsolve(state.AC[pos],1,:SR,Arnoldi()) do x
                 ac_prime(x,pos,state,envs)
             end
             delta = max(delta,calc_galerkin(state,pos,envs))
@@ -54,7 +54,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
     while iter < maxiter && delta > tol
         delta=0.0
 
-        ealg = Lanczos()
+        ealg = Arnoldi()
 
         #left to right sweep
         for pos= 1:(length(state)-1)
