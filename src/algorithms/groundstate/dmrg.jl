@@ -17,7 +17,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
         delta=0.0
 
         for pos = [1:(length(state)-1);length(state):-1:2]
-            (eigvals,vecs) = @closure eigsolve(state.AC[pos],1,:SR,Arnoldi()) do x
+            (eigvals,vecs) = @closure eigsolve(state.AC[pos],1,:LR,Arnoldi()) do x
                 ac_prime(x,pos,state,envs)
             end
             delta = max(delta,calc_galerkin(state,pos,envs))
@@ -59,7 +59,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
         #left to right sweep
         for pos= 1:(length(state)-1)
             @tensor ac2[-1 -2; -3 -4]:=state.AC[pos][-1,-2,1]*state.AR[pos+1][1,-3,-4]
-            (eigvals,vecs) = @closure eigsolve(ac2,1,:SR,ealg) do x
+            (eigvals,vecs) = @closure eigsolve(ac2,1,:LR,ealg) do x
                 ac2_prime(x,pos,state,envs)
             end
             newA2center = vecs[1]
@@ -76,7 +76,7 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
 
         for pos = length(state)-2:-1:1
             @tensor ac2[-1 -2; -3 -4]:=state.AL[pos][-1,-2,1]*state.AC[pos+1][1,-3,-4]
-            (eigvals,vecs) = @closure eigsolve(ac2,1,:SR,ealg) do x
+            (eigvals,vecs) = @closure eigsolve(ac2,1,:LR,ealg) do x
                 ac2_prime(x,pos,state,envs)
             end
             newA2center = vecs[1]
