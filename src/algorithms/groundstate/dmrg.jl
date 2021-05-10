@@ -40,6 +40,7 @@ end
 "twosite dmrg"
 @with_kw struct Dmrg2{F} <: Algorithm
     tol = Defaults.tol;
+    etol = 1e-6;
     maxiter = Defaults.maxiter;
     trscheme = truncerr(1e-6);
     krylovdim = 30;
@@ -51,8 +52,10 @@ find_groundstate(state,H,alg::Dmrg2,envs...) = find_groundstate!(copy(state),H,a
 function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,alg::Dmrg2,envs = environments(state,H))
     tol=alg.tol;maxiter=alg.maxiter
     iter = 0; delta::Float64 = 2*tol
+    prev_energy = 10000000;
+    energy_diff = 10000000;
 
-    while iter < maxiter && delta > tol
+    while iter < maxiter && delta > tol && energy_diff > alg.etol
         delta=0.0
 
         ealg = Arnoldi(krylovdim=alg.krylovdim)
@@ -91,10 +94,14 @@ function find_groundstate!(state::Union{FiniteMPS,MPSComoving}, H::Hamiltonian,a
             state.AC[pos] = (al,complex(c))
         end
 
-        alg.verbose && @info "Iteraton $(iter) error $(delta)"
-        flush(stdout)
         #finalize
         (state,envs) = alg.finalize(iter,state,H,envs)::Tuple{typeof(state),typeof(envs)};
+        energy = real(sum(expectation_value(state,H)))
+        energy_diff = abs(energy - prev_energy)
+        prev_energy = energy
+
+        alg.verbose && @info "Iteraton $(iter) error $(delta) energy_diff $(energy_diff)"
+        flush(stdout)
         iter += 1
     end
 
